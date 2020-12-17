@@ -3,8 +3,10 @@ package com.shatilov.us.ncp.neobuzz;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
@@ -29,6 +31,8 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
     int[] motorIntensities = new int[4];
     private Button clearButton;
 
+    private SwipePanel swipePanel;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,9 +52,16 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
     }
 
     private void unitUI() {
+
+        swipePanel = new SwipePanel(this);
+
         // connect button
         buzzConnectButton = findViewById(R.id.buzz_connect_button);
-        buzzConnectButton.setOnClickListener((button) -> buzz.init());
+        buzzConnectButton.setOnClickListener((button) -> {
+            buzz.init();
+            buzzConnectButton.setEnabled(false);
+            buzzConnectButton.setText("Connecting...");
+        });
 
         // seekBars
         seekBars = new ArrayList<>(4);
@@ -83,21 +94,18 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
         // swipe motor buttons
         motorSwipes = new ArrayList<>(4);
 
-        final Drawable buttonInit = getDrawable(R.drawable.button_init);
-        final Drawable buttonPressed = getDrawable(R.drawable.button_pressed);
-
         clearButton = findViewById(R.id.clear_swipe_button);
         clearButton.setOnClickListener(button -> {
             swipeOrder = 0;
-            clearButton.setEnabled(false);
             buzz.stopVibration();
-            seekBars.forEach(e -> ((SeekBar)e).setProgress(0));
-            // TODO more
+            seekBars.forEach(e -> ((SeekBar) e).setProgress(0));
+            swipePanel.clearPaths();
         });
 
         motorSwipes.forEach(e -> e = 0);
 
-
+        LinearLayout container = findViewById(R.id.container);
+        container.addView(swipePanel);
     }
 
 
@@ -107,6 +115,19 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
             buzzConnectButton.setText("Connected");
             buzzConnectButton.setEnabled(false);
             clearButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void swipePanelCallback() {
+        swipePanel.getPaths().forEach((ArrayList<Integer> path) -> {
+                    buzz.sendSwipe(path.toArray());
+                }
+        );
+    }
+
+    public void motorSwipeCallback(int[] motorsState) {
+        for (int i = 0; i < 4; ++i) {
+            seekBars.get(i).setProgress(motorsState[i]);
         }
     }
 }

@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import com.neosensory.neosensoryblessed.NeosensoryBlessed;
+import com.shatilov.us.ncp.neobuzz.BuzzActivity;
 
 import java.util.Arrays;
 
@@ -18,7 +19,11 @@ public class BuzzWrapper {
     NeosensoryBlessed buzz = null;
     private Thread vibratingPatternThread;
     int[] motorPattern;
+    int iteration = 0;
+    boolean vibrating = false;
+    VibratingPattern vibratingPattern = new VibratingPattern();
     public int MAX_VIBRATION = NeosensoryBlessed.MAX_VIBRATION_AMP;
+    private Object[] motorDirection;
 
     public BuzzWrapper(Activity activity) {
         this.activity = activity;
@@ -26,14 +31,23 @@ public class BuzzWrapper {
 
     class VibratingPattern implements Runnable {
         public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!Thread.currentThread().isInterrupted() && vibrating) {
                 try {
-                    Log.d(TAG, "sendPersistentVibration: " + Arrays.toString(motorPattern));
-                    Thread.sleep(150);
+
+                    Thread.sleep(350);
                     buzz.vibrateMotors(motorPattern);
+                    ++iteration;
+                    motorPattern = new int[4];
+                    motorPattern[(int) motorDirection[iteration % motorDirection.length]] = 255;
+                    if (activity instanceof BuzzActivity) {
+                        ((BuzzActivity) activity).motorSwipeCallback(motorPattern);
+                    }
+
                 } catch (InterruptedException e) {
                     buzz.stopMotors();
                     Log.i(TAG, "Interrupted thread");
+                } finally {
+                    buzz.stopMotors();
                 }
             }
 
@@ -44,7 +58,11 @@ public class BuzzWrapper {
         if (null == buzz) {
             return;
         }
+        vibrating = false;
         buzz.stopMotors();
+        if (vibratingPatternThread != null) {
+            vibratingPatternThread.interrupt();
+        }
     }
 
     public void sendVibration(int[] motorPattern) {
@@ -52,6 +70,16 @@ public class BuzzWrapper {
             return;
         }
         buzz.vibrateMotors(motorPattern);
+    }
+
+    public void sendSwipe(Object[] motorDirection) {
+        vibrating = true;
+        motorPattern = new int[4];
+        iteration = 0;
+        this.motorDirection = motorDirection;
+        motorPattern[(int) motorDirection[iteration]] = MAX_VIBRATION;
+        vibratingPatternThread = new Thread(vibratingPattern);
+        vibratingPatternThread.start();
     }
 
     private final BroadcastReceiver BlessedReceiver =
