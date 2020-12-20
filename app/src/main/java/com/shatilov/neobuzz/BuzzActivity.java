@@ -1,4 +1,4 @@
-package com.shatilov.us.ncp.neobuzz;
+package com.shatilov.neobuzz;
 
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -12,9 +12,9 @@ import android.widget.SeekBar;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.shatilov.us.ncp.neobuzz.utils.BuzzAwareActivity;
-import com.shatilov.us.ncp.neobuzz.utils.BuzzWrapper;
-import com.shatilov.us.ncp.neobuzz.utils.ColourPalette;
+import com.shatilov.neobuzz.utils.BuzzAwareActivity;
+import com.shatilov.neobuzz.utils.BuzzWrapper;
+import com.shatilov.neobuzz.utils.ColourPalette;
 
 import java.util.ArrayList;
 

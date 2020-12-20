@@ -1,4 +1,4 @@
-package com.shatilov.us.ncp.neobuzz;
+package com.shatilov.neobuzz;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -10,7 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.shatilov.us.ncp.neobuzz.utils.ColourPalette;
+import com.shatilov.neobuzz.utils.ColourPalette;
 
 import java.util.ArrayList;
 
@@ -127,7 +127,9 @@ public class SwipePanel extends View {
         {
             for (int i = 0; i < path.size() - 1; ++i) {
                 Pair<Integer, Integer> start = centers.get(path.get(i));
-                Pair<Integer, Integer> end = centers.get(path.get(i + 1));
+                int index = path.get(i + 1);
+                index = Math.min(3, Math.max(0, index));
+                Pair<Integer, Integer> end = centers.get(index);
                 canvas.drawLine(start.first, start.second, end.first, end.second, activePaint);
                 if (i == path.size() - 2) {
                     int arrowX = end.first + 60 * (path.get(i) - path.get(i + 1));
@@ -156,7 +158,10 @@ public class SwipePanel extends View {
             return;
         }
 
-        Pair<Integer, Integer> activeCenter = centers.get(activePath.get(size - 1));
+        int index = activePath.get(size - 1);
+        index = Math.min(3, Math.max(0, index));
+
+        Pair<Integer, Integer> activeCenter = centers.get(index);
 
         float startX = activeCenter.first;
         float startY = activeCenter.second;

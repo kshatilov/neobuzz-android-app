@@ -1,4 +1,4 @@
-package com.shatilov.us.ncp.neobuzz.utils;
+package com.shatilov.neobuzz.utils;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -8,7 +8,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import com.neosensory.neosensoryblessed.NeosensoryBlessed;
-import com.shatilov.us.ncp.neobuzz.BuzzActivity;
+import com.shatilov.neobuzz.BuzzActivity;
 
 import java.util.Arrays;
 
@@ -38,7 +38,9 @@ public class BuzzWrapper {
                     buzz.vibrateMotors(motorPattern);
                     ++iteration;
                     motorPattern = new int[4];
-                    motorPattern[(int) motorDirection[iteration % motorDirection.length]] = 255;
+                    int index = iteration % motorDirection.length;
+                    index = Math.min(3, Math.max(0, index));
+                    motorPattern[(int) motorDirection[index]] = 255;
                     if (activity instanceof BuzzActivity) {
                         ((BuzzActivity) activity).motorSwipeCallback(motorPattern);
                     }
@@ -73,6 +75,9 @@ public class BuzzWrapper {
     }
 
     public void sendSwipe(Object[] motorDirection) {
+        if (null == buzz) {
+            return;
+        }
         vibrating = true;
         motorPattern = new int[4];
         iteration = 0;

@@ -1,4 +1,4 @@
-package com.shatilov.us.ncp.neobuzz.utils;
+package com.shatilov.neobuzz.utils;
 
 import android.graphics.Color;
 

@@ -1,4 +1,4 @@
-package com.shatilov.us.ncp.neobuzz.utils;
+package com.shatilov.neobuzz.utils;
 
 public class Utils {
     public static byte[] getStreamCmd() {
