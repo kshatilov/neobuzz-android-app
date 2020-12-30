@@ -49,7 +49,7 @@ public class MyoWrapper {
                                 }, 2000);
 
                                 if (activity instanceof MyoAwareActivity) {
-                                    ((MyoAwareActivity) activity).handleConnect();
+                                    ((MyoAwareActivity) activity).onMyoConnect();
                                 }
                             }
                         });
@@ -57,7 +57,7 @@ public class MyoWrapper {
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .onBackpressureDrop()
-                        .subscribe(activity instanceof MyoAwareActivity ? ((MyoAwareActivity) activity)::handleData : (value) -> {});
+                        .subscribe(activity instanceof MyoAwareActivity ? ((MyoAwareActivity) activity)::onMyoData : (value) -> {});
             }
 
             @Override

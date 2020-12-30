@@ -1,6 +1,6 @@
 package com.shatilov.neobuzz.utils;
 
 public interface MyoAwareActivity {
-    void handleConnect();
-    void handleData(float[] data);
+    void onMyoConnect();
+    void onMyoData(float[] data);
 }

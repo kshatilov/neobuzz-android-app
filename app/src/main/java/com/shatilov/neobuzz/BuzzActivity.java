@@ -98,7 +98,7 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
         clearButton.setOnClickListener(button -> {
             swipeOrder = 0;
             buzz.stopVibration();
-            seekBars.forEach(e -> ((SeekBar) e).setProgress(0));
+            seekBars.forEach(e -> e.setProgress(0));
             swipePanel.clearPaths();
         });
 
@@ -110,7 +110,7 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
 
 
     @Override
-    public void handleConnect(int code) {
+    public void onConnect(int code) {
         if (code > 0) {
             buzzConnectButton.setText("Connected");
             buzzConnectButton.setEnabled(false);
@@ -119,13 +119,11 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
     }
 
     public void swipePanelCallback() {
-        swipePanel.getPaths().forEach((ArrayList<Integer> path) -> {
-                    buzz.sendSwipe(path.toArray());
-                }
-        );
+        ArrayList<Integer> path = swipePanel.getPaths().get(0);
+        buzz.sendSwipe(path.get(path.size() - 1) > path.get(0));
     }
 
-    public void motorSwipeCallback(int[] motorsState) {
+    public void onPatternChanged(int[] motorsState) {
         for (int i = 0; i < 4; ++i) {
             seekBars.get(i).setProgress(motorsState[i]);
         }

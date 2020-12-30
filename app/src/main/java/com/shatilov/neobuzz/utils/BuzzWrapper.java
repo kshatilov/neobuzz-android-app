@@ -7,52 +7,78 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import com.neosensory.neosensoryblessed.NeoBuzzPsychophysics;
 import com.neosensory.neosensoryblessed.NeosensoryBlessed;
 import com.shatilov.neobuzz.BuzzActivity;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BuzzWrapper {
     public static final String BUZZ_ADDRESS = "FD:01:54:6E:6B:3C";
+    public static final int FPS = 8; // control frames per second, should be 64
     private static final String TAG = "BuzzWrapper: ";
+    private static final long SWIPE_TIME = 4000;
+
     private final Activity activity;
     NeosensoryBlessed buzz = null;
-    private Thread vibratingPatternThread;
-    int[] motorPattern;
-    int iteration = 0;
+    private Thread vibratingThread;
+    private Thread notifyThread;
     boolean vibrating = false;
-    VibratingPattern vibratingPattern = new VibratingPattern();
     public int MAX_VIBRATION = NeosensoryBlessed.MAX_VIBRATION_AMP;
-    private Object[] motorDirection;
+    private boolean direction;
+
+    private List<int[]> patterns;
 
     public BuzzWrapper(Activity activity) {
         this.activity = activity;
     }
 
-    class VibratingPattern implements Runnable {
+
+    class NotifyThread implements Runnable {
         public void run() {
             while (!Thread.currentThread().isInterrupted() && vibrating) {
-                try {
-
-                    Thread.sleep(350);
-                    buzz.vibrateMotors(motorPattern);
-                    ++iteration;
-                    motorPattern = new int[4];
-                    int index = iteration % motorDirection.length;
-                    index = Math.min(3, Math.max(0, index));
-                    motorPattern[(int) motorDirection[index]] = 255;
+                List<int[]> patternCopy = new ArrayList<>(patterns);
+                patternCopy.forEach(pattern -> {
                     if (activity instanceof BuzzActivity) {
-                        ((BuzzActivity) activity).motorSwipeCallback(motorPattern);
+                        ((BuzzActivity) activity).onPatternChanged(pattern);
+                        try {
+                            Thread.sleep(SWIPE_TIME / FPS);
+                        } catch (InterruptedException e) {
+                            buzz.stopMotors();
+                        }
                     }
+                });
+            }
+        }
+    }
 
+    void generatePattern() {
+        patterns = new ArrayList<>();
+
+        float intensity = 1.F;
+
+        for (int i = 0; i < FPS; i++) {
+            float location = (i + 1) * (1.F / FPS);
+            if (!direction) location = 1 - location;
+            patterns.add(NeoBuzzPsychophysics.GetIllusionActivations(intensity, location));
+        }
+    }
+
+    class VibratingPattern implements Runnable {
+        public void run() {
+            while (vibrating && !Thread.currentThread().isInterrupted()) {
+                patterns.forEach(pattern -> {
+
+                    buzz.vibrateMotors(pattern);
+                });
+                try {
+                    Thread.sleep(SWIPE_TIME);
                 } catch (InterruptedException e) {
-                    buzz.stopMotors();
-                    Log.i(TAG, "Interrupted thread");
-                } finally {
+                    buzz.clearMotorQueue();
                     buzz.stopMotors();
                 }
             }
-
         }
     }
 
@@ -60,11 +86,19 @@ public class BuzzWrapper {
         if (null == buzz) {
             return;
         }
+
         vibrating = false;
-        buzz.stopMotors();
-        if (vibratingPatternThread != null) {
-            vibratingPatternThread.interrupt();
+        if (vibratingThread != null) {
+            vibratingThread.interrupt();
         }
+
+        if (notifyThread != null) {
+            notifyThread.interrupt();
+        }
+
+        buzz.clearMotorQueue();
+        buzz.stopMotors();
+        buzz.attemptNeoReconnect();
     }
 
     public void sendVibration(int[] motorPattern) {
@@ -74,17 +108,21 @@ public class BuzzWrapper {
         buzz.vibrateMotors(motorPattern);
     }
 
-    public void sendSwipe(Object[] motorDirection) {
+    /* if direction: left-to-right */
+    public void sendSwipe(boolean direction) {
         if (null == buzz) {
             return;
         }
         vibrating = true;
-        motorPattern = new int[4];
-        iteration = 0;
-        this.motorDirection = motorDirection;
-        motorPattern[(int) motorDirection[iteration]] = MAX_VIBRATION;
-        vibratingPatternThread = new Thread(vibratingPattern);
-        vibratingPatternThread.start();
+        this.direction = direction;
+
+        generatePattern();
+
+        vibratingThread = new Thread(new VibratingPattern());
+        vibratingThread.start();
+
+        notifyThread = new Thread(new NotifyThread());
+        notifyThread.start();
     }
 
     private final BroadcastReceiver BlessedReceiver =
@@ -98,7 +136,7 @@ public class BuzzWrapper {
                             buzz.pauseDeviceAlgorithm();
                             Log.d(TAG, String.format("state message: %s", buzz.getNeoCliResponse()));
                             if (activity instanceof BuzzAwareActivity) {
-                                ((BuzzAwareActivity) activity).handleConnect(1);
+                                ((BuzzAwareActivity) activity).onConnect(1);
                             }
                         }
                     }

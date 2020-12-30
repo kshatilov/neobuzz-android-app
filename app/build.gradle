@@ -36,5 +36,5 @@ dependencies {
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
     implementation 'com.github.neosensory:neosensory-sdk-for-android-java:1.1.0'
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation 'com.github.weliem:blessed-android:master-SNAPSHOT'
+    implementation 'com.github.weliem:blessed-android:1.30'
 }

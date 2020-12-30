@@ -123,6 +123,9 @@ public class SwipePanel extends View {
     }
 
     private void drawPath(Canvas canvas) {
+
+        activePaint.setAlpha(80);
+        activePaint.setStrokeWidth(6);
         paths.forEach(path ->
         {
             for (int i = 0; i < path.size() - 1; ++i) {
@@ -132,14 +135,16 @@ public class SwipePanel extends View {
                 Pair<Integer, Integer> end = centers.get(index);
                 canvas.drawLine(start.first, start.second, end.first, end.second, activePaint);
                 if (i == path.size() - 2) {
-                    int arrowX = end.first + 60 * (path.get(i) - path.get(i + 1));
-                    int arrowY = end.second - 20;
-                    int arrowY_ = end.second + 20;
+                    int arrowX = end.first + 45 * (path.get(i) - path.get(i + 1));
+                    int arrowY = end.second + 5;
+                    int arrowY_ = end.second - 5;
                     canvas.drawLine(arrowX, arrowY, end.first, end.second, activePaint);
                     canvas.drawLine(arrowX, arrowY_, end.first, end.second, activePaint);
                 }
             }
         });
+        activePaint.setAlpha(255);
+        activePaint.setStrokeWidth(TH);
     }
 
     public void clearPaths() {
