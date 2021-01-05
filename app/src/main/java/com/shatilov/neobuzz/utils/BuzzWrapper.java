@@ -108,6 +108,13 @@ public class BuzzWrapper {
         buzz.vibrateMotors(motorPattern);
     }
 
+    public void sendVibration() {
+        if (null == buzz) {
+            return;
+        }
+        buzz.vibrateMotors(new int[]{255, 255, 255, 255});
+    }
+
     /* if direction: left-to-right */
     public void sendSwipe(boolean direction) {
         if (null == buzz) {
@@ -136,7 +143,7 @@ public class BuzzWrapper {
                             buzz.pauseDeviceAlgorithm();
                             Log.d(TAG, String.format("state message: %s", buzz.getNeoCliResponse()));
                             if (activity instanceof BuzzAwareActivity) {
-                                ((BuzzAwareActivity) activity).onConnect(1);
+                                ((BuzzAwareActivity) activity).onBuzzConnect(1);
                             }
                         }
                     }
@@ -162,7 +169,7 @@ public class BuzzWrapper {
         buzz.attemptNeoReconnect();
     }
 
-    public void init() {
+    public void connect() {
         NeosensoryBlessed.requestBluetoothOn(activity);
         initBluetoothHandler();
     }

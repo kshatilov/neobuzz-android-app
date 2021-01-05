@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,7 +16,7 @@ import java.util.ArrayList;
 public class SwipePanel extends View {
     private static final String TAG = "SwipePanel";
     private static final int RAD = 19;
-    private static final int TH = 10;
+    private static final int STROKE_WIDTH = 10;
 
     private float touchX, touchY;
     private int sizeX, sizeY;
@@ -26,6 +25,7 @@ public class SwipePanel extends View {
     private final ArrayList<Pair<Integer, Integer>> centers = new ArrayList<>(4);
     private ArrayList<Integer> activePath = new ArrayList<>();
     private final ArrayList<ArrayList<Integer>> paths = new ArrayList<>(2);
+    private Paint inactivePaint, activePaint;
 
     public SwipePanel(Context context) {
         super(context);
@@ -62,7 +62,6 @@ public class SwipePanel extends View {
         initPaint();
     }
 
-    Paint inactivePaint, activePaint;
 
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
@@ -77,7 +76,7 @@ public class SwipePanel extends View {
         inactivePaint.setAntiAlias(true);
         inactivePaint.setStyle(Paint.Style.STROKE);
         inactivePaint.setColor(Color.GRAY);
-        inactivePaint.setStrokeWidth(TH);
+        inactivePaint.setStrokeWidth(STROKE_WIDTH);
         inactivePaint.setStyle(Paint.Style.FILL);
 
 
@@ -85,7 +84,7 @@ public class SwipePanel extends View {
         activePaint.setAntiAlias(true);
         activePaint.setStyle(Paint.Style.STROKE);
         activePaint.setColor(ColourPalette.neuralBlue);
-        activePaint.setStrokeWidth(TH);
+        activePaint.setStrokeWidth(STROKE_WIDTH);
         activePaint.setStyle(Paint.Style.FILL);
     }
 
@@ -144,7 +143,7 @@ public class SwipePanel extends View {
             }
         });
         activePaint.setAlpha(255);
-        activePaint.setStrokeWidth(TH);
+        activePaint.setStrokeWidth(STROKE_WIDTH);
     }
 
     public void clearPaths() {

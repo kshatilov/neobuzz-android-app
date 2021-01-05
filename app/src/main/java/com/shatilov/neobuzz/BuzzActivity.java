@@ -1,9 +1,7 @@
 package com.shatilov.neobuzz;
 
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -58,7 +56,7 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
         // connect button
         buzzConnectButton = findViewById(R.id.buzz_connect_button);
         buzzConnectButton.setOnClickListener((button) -> {
-            buzz.init();
+            buzz.connect();
             buzzConnectButton.setEnabled(false);
             buzzConnectButton.setText("Connecting...");
         });
@@ -110,7 +108,7 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
 
 
     @Override
-    public void onConnect(int code) {
+    public void onBuzzConnect(int code) {
         if (code > 0) {
             buzzConnectButton.setText("Connected");
             buzzConnectButton.setEnabled(false);
