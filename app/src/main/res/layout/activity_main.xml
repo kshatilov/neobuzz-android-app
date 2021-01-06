@@ -14,10 +14,18 @@
 
         <LinearLayout
             android:id="@+id/hand_container"
-            android:layout_width="200dp"
+            android:layout_width="300dp"
+            android:layout_height="400dp"
+            android:layout_gravity="center"
+            android:orientation="vertical" />
+
+        <LinearLayout
+            android:id="@+id/control_container"
+            android:layout_width="300dp"
             android:layout_height="200dp"
             android:layout_gravity="center"
-            android:orientation="horizontal" />
+            android:orientation="vertical" />
+
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
