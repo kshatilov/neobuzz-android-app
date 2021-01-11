@@ -2,19 +2,14 @@ package com.shatilov.neobuzz;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.View;
 
-import com.shatilov.neobuzz.utils.ColourPalette;
+import com.shatilov.neobuzz.utils.HapticFeedbackActivity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,29 +17,45 @@ public class HandPanel extends View {
 
 
     private static final String TAG = "Hand_Canvas";
+    private final Context context;
 
     private int sizeX, sizeY;
+    private final Hand hand;
 
-    static final Map<String, Rect> imageRect = new HashMap<>();
+    private static final int shiftX = -40;
+    private static final Map<String, Rect> imageRect = new HashMap<>();
+    static final Map<Double, Double> transitions = new HashMap<>();
+    /* finger position to top and bottom edges of the finger image */
+    static final Map<Double, Pair<int[], int[]>> drawPositions = new HashMap<>();
 
     static {
         imageRect.put("palm", new Rect(0, 0, 647, 569));
         imageRect.put("thumb", new Rect(0, 0, 294, 417));
         imageRect.put("thumb_b", new Rect(0, 0, 247, 389));
         imageRect.put("finger", new Rect(0, 0, 162, 734));
+
+        transitions.put(0., .5);
+        transitions.put(.5, 1.);
+        transitions.put(1., 0.);
+
+        drawPositions.put(0., new Pair<>(new int[]{40, 0, 70, 160}, new int[]{0, 0, 30, 50}));
+        drawPositions.put(0.5, new Pair<>(new int[]{130, 140, 130, 250}, new int[]{0, 0, 30, 50}));
+        drawPositions.put(1., new Pair<>(new int[]{330, 310, 350, 390}, new int[]{120, 150, 120, 80}));
     }
 
     private final Drawable palmImage; // 674x667
     private final Drawable thumbImage; // 294x417
     private final Drawable fingerImage; // 162x734
     private final Drawable thumbBImage; // 162x734
+    private final int[] touch2Finger = {0, 0, 0, 0, 0};
 
-    private final double SF = 0.6;
+    private final double SF = 0.75;
 
-    private float[] pos = {0, 0, 0, 0, 0};
-
-    public HandPanel(Context context) {
+    public HandPanel(Context context, Hand hand) {
         super(context);
+
+        this.context = context;
+        this.hand = hand;
 
         palmImage = context.getDrawable(R.drawable.palm);
         thumbImage = context.getDrawable(R.drawable.thumb);
@@ -53,8 +64,7 @@ public class HandPanel extends View {
 
     }
 
-    public void setPos(float[] pos) {
-        this.pos = pos;
+    public void update() {
         invalidate();
     }
 
@@ -63,6 +73,34 @@ public class HandPanel extends View {
         super.onSizeChanged(w, h, oldW, oldH);
         sizeX = w;
         sizeY = h;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        performClick();
+        float x = event.getX();
+        int index = 0;
+
+        for (int i = 0; i < 5; i++) {
+            if (x > touch2Finger[i]) {
+                index = i;
+            }
+        }
+
+        if (0 != index) {
+            hand.bendFinger(index, transitions.get(hand.getFingerPositions()[index]));
+        } else {
+            hand.bendFinger(index,
+                    Double.compare(hand.getFingerPositions()[index], 0) == 0 ? 1 : 0);
+        }
+
+        invalidate();
+
+        if (context instanceof HapticFeedbackActivity) {
+            ((HapticFeedbackActivity)context).onHandUpdated();
+        }
+
+        return super.onTouchEvent(event);
     }
 
     /**
@@ -90,7 +128,9 @@ public class HandPanel extends View {
     }
 
     private void drawPalm(Canvas canvas) {
-        palmImage.setBounds(getRect("palm"));
+        Rect r = getRect("palm");
+        r = placeRect(r, (int) (424 * SF) + shiftX, (int) (700 * SF));
+        palmImage.setBounds(r);
         palmImage.draw(canvas);
     }
 
@@ -104,24 +144,23 @@ public class HandPanel extends View {
     }
 
     private void drawFingers(Canvas canvas) {
-        int mx = -17;
-        int start = 306;
-
-        int[] dTop = {40, 0, 70, 160};
-        int[] dBottom = {0, 0, 30, 50};
-
-        int[] dBTop = {300, 280, 320, 340};
-        int[] dBBottom = {120, 150, 120, 80};
+        int mx = (int) (-29 * SF);
+        int startX = (int) (510 * SF);
+        int startY = (int) (50 * SF);
 
         Rect original = getRect("finger");
         int sx = original.width();
+        touch2Finger[0] = 0;
 
-        for (int i = 1; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             Rect r = new Rect(original);
-            r= placeRect(r, start + (i - 1) * (sx + mx), 50);
+            int x = startX + (i) * (sx + mx) + shiftX;
+            touch2Finger[i + 1] = x;
+            r = placeRect(r, x, startY);
 
-            r.bottom += (pos[i] == 1) ? dBBottom[i - 1] : dBottom[i - 1];
-            r.top += (pos[i] == 1) ? dBTop[i - 1] : dTop[i - 1];
+            Pair<int[], int[]> config = drawPositions.get(hand.getFingerPositions()[i + 1]);
+            r.top += config.first[i] * SF;
+            r.bottom += config.second[i] * SF;
 
             fingerImage.setBounds(r);
             fingerImage.draw(canvas);
@@ -129,14 +168,14 @@ public class HandPanel extends View {
     }
 
     private void drawThumb(Canvas canvas) {
-        if (pos[0] == 1) {
+        if (Double.compare(hand.getFingerPositions()[0], 1.) == 0) {
             Rect r = getRect("thumb_b");
-            r = placeRect(r, 175, 365);
+            r = placeRect(r, (int) (290 * SF) + shiftX, (int) (610 * SF));
             thumbBImage.setBounds(r);
             thumbBImage.draw(canvas);
         } else {
             Rect r = getRect("thumb");
-            r = placeRect(r, 90, 365);
+            r = placeRect(r, (int) (150 * SF) + shiftX, (int) (590 * SF));
             thumbImage.setBounds(r);
             thumbImage.draw(canvas);
         }

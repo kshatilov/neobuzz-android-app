@@ -27,6 +27,7 @@ public class BuzzWrapper {
     boolean vibrating = false;
     public int MAX_VIBRATION = NeosensoryBlessed.MAX_VIBRATION_AMP;
     private boolean direction;
+    private boolean isConnected = false;
 
     private List<int[]> patterns;
 
@@ -34,6 +35,9 @@ public class BuzzWrapper {
         this.activity = activity;
     }
 
+    public boolean isConnected() {
+        return isConnected;
+    }
 
     class NotifyThread implements Runnable {
         public void run() {
@@ -142,6 +146,7 @@ public class BuzzWrapper {
                             buzz.acceptApiTerms();
                             buzz.pauseDeviceAlgorithm();
                             Log.d(TAG, String.format("state message: %s", buzz.getNeoCliResponse()));
+                            isConnected = true;
                             if (activity instanceof BuzzAwareActivity) {
                                 ((BuzzAwareActivity) activity).onBuzzConnect(1);
                             }

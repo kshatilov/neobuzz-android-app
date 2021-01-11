@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.shatilov.neobuzz.Hand;
 import com.shatilov.neobuzz.ml.KirillNb100;
 
 import org.tensorflow.lite.DataType;
@@ -22,13 +23,6 @@ public class EasyPredictor {
     private static final String TAG = "CLF";
 
     private KirillNb100 model;
-
-    public static String[] gestures = {
-            ("00000"),   // palm
-            ("11111"),   // fist
-            ("01111"),   // thumb
-            ("10111"),   // point
-    };
 
     public EasyPredictor(Context context) {
         try {
@@ -63,7 +57,7 @@ public class EasyPredictor {
                 break;
             }
         }
-        return gestures[index];
+        return Hand.simpleGestures[index];
     }
 
 
