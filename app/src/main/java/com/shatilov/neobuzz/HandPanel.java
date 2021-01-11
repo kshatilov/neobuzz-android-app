@@ -2,27 +2,30 @@ package com.shatilov.neobuzz;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.shatilov.neobuzz.utils.ColourPalette;
 import com.shatilov.neobuzz.utils.HapticFeedbackActivity;
+import com.shatilov.neobuzz.widgets.Widget;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class HandPanel extends View {
+public class HandPanel extends Widget {
 
 
     private static final String TAG = "Hand_Canvas";
     private final Context context;
 
-    private int sizeX, sizeY;
     private final Hand hand;
 
     private static final int shiftX = -40;
+    private static final int RAD = 30;
     private static final Map<String, Rect> imageRect = new HashMap<>();
     static final Map<Double, Double> transitions = new HashMap<>();
     /* finger position to top and bottom edges of the finger image */
@@ -66,13 +69,6 @@ public class HandPanel extends View {
 
     public void update() {
         invalidate();
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        super.onSizeChanged(w, h, oldW, oldH);
-        sizeX = w;
-        sizeY = h;
     }
 
     @Override
@@ -127,20 +123,20 @@ public class HandPanel extends View {
         return new Rect(r);
     }
 
-    private void drawPalm(Canvas canvas) {
-        Rect r = getRect("palm");
-        r = placeRect(r, (int) (424 * SF) + shiftX, (int) (700 * SF));
-        palmImage.setBounds(r);
-        palmImage.draw(canvas);
-    }
-
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         drawPalm(canvas);
         drawThumb(canvas);
         drawFingers(canvas);
+        drawSensors(canvas);
+    }
+
+    private void drawPalm(Canvas canvas) {
+        Rect r = getRect("palm");
+        r = placeRect(r, (int) (424 * SF) + shiftX, (int) (700 * SF));
+        palmImage.setBounds(r);
+        palmImage.draw(canvas);
     }
 
     private void drawFingers(Canvas canvas) {
@@ -181,4 +177,41 @@ public class HandPanel extends View {
         }
     }
 
+    private void drawPressureCircle(int x, int y, int index, Canvas canvas) {
+        if (hand.getPressure()[index] > 0) {
+            paint.setColor(ColourPalette.pointyRed);
+        }
+        canvas.drawCircle(x, y, RAD, paint);
+        paint.setColor(Color.LTGRAY);
+
+    }
+
+    private void drawSensors(Canvas canvas) {
+        // thumb sensor
+        int x, y;
+        int mX = (int) (80 * SF);
+        int mY = (int) (170 * SF);
+        if (Double.compare(hand.getFingerPositions()[0], 1.) == 0) {
+            x = (int) (350 * SF) + shiftX + mX;
+            y = (int) (540 * SF) + mY;
+            canvas.drawCircle(x, y, RAD, paint);
+        } else {
+            x = (int) ((155 * SF) + shiftX) + mX;
+            y = (int) (500 * SF) + mY;
+        }
+
+        drawPressureCircle(x, y, 0, canvas);
+
+        // palm sensor
+        x = (int) (700 * SF) + shiftX;
+        y = (int) (1000 * SF);
+        drawPressureCircle(x, y, 1, canvas);
+
+
+        // index sensor
+        x = touch2Finger[1] + mX;
+        y = (int) (drawPositions.get(hand.getFingerPositions()[1]).first[1] * SF) + mY;
+        drawPressureCircle(x, y, 2, canvas);
+
+    }
 }

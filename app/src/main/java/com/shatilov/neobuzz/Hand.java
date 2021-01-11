@@ -3,6 +3,7 @@ package com.shatilov.neobuzz;
 public class Hand {
     /* for each finger 0 is relaxed, 1 is fully bent */
     private double[] fingerPositions = {0, 0, 0, 0, 0};
+    private double[] pressure = {0, 0 , 0};
     private String gestureCmd;
 
     public static final String[] simpleGestures = {
@@ -39,5 +40,14 @@ public class Hand {
         }
     }
 
+    public double[] getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(int index, double value) {
+        if (0 <= index && index < pressure.length) {
+            pressure[index] = value;
+        }
+    }
 }
 
