@@ -10,6 +10,7 @@ import android.util.Log;
 import com.neosensory.neosensoryblessed.NeoBuzzPsychophysics;
 import com.neosensory.neosensoryblessed.NeosensoryBlessed;
 import com.shatilov.neobuzz.BuzzActivity;
+import com.shatilov.neobuzz.widgets.BuzzWidget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class BuzzWrapper {
     private static final long SWIPE_TIME = 4000;
 
     private final Activity activity;
+    private final BuzzWidget widget;
     NeosensoryBlessed buzz = null;
     private Thread vibratingThread;
     private Thread notifyThread;
@@ -31,8 +33,9 @@ public class BuzzWrapper {
 
     private List<int[]> patterns;
 
-    public BuzzWrapper(Activity activity) {
+    public BuzzWrapper(Activity activity, BuzzWidget widget) {
         this.activity = activity;
+        this.widget = widget;
     }
 
     public boolean isConnected() {
@@ -105,9 +108,35 @@ public class BuzzWrapper {
         buzz.attemptNeoReconnect();
     }
 
+    public void sendVibration(List<int[]> patterns) {
+        if (null == buzz || patterns == null) {
+            return;
+        }
+        vibrating = true;
+        long interval = 500;
+        vibratingThread = new Thread(() -> {
+            int i = 0;
+            while (vibrating && !Thread.currentThread().isInterrupted()) {
+                int[] pattern = patterns.get(i % patterns.size());
+                buzz.vibrateMotors(pattern);
+                if (null != widget) widget.update(pattern);
+                try {
+                    Thread.sleep(interval);
+                } catch (InterruptedException e) {
+                    vibrating = false;
+                }
+                i++;
+            }
+        });
+        vibratingThread.start();
+    }
+
     public void sendVibration(int[] motorPattern) {
         if (null == buzz) {
             return;
+        }
+        if (null != widget) {
+            widget.update(motorPattern);
         }
         buzz.vibrateMotors(motorPattern);
     }
@@ -177,5 +206,13 @@ public class BuzzWrapper {
     public void connect() {
         NeosensoryBlessed.requestBluetoothOn(activity);
         initBluetoothHandler();
+    }
+
+    public void disconnect() {
+        if (isConnected) {
+            return;
+        }
+        buzz.disconnectNeoDevice();
+        isConnected = false;
     }
 }

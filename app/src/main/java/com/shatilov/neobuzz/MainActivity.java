@@ -8,8 +8,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -19,6 +21,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.shatilov.neobuzz.haptics.PatternTranslator;
 import com.shatilov.neobuzz.utils.BuzzAwareActivity;
 import com.shatilov.neobuzz.utils.BuzzWrapper;
 import com.shatilov.neobuzz.utils.ColourPalette;
@@ -33,6 +36,7 @@ import com.shatilov.neobuzz.widgets.MyoWidget;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Queue;
 
 import fi.iki.elonen.NanoHTTPD;
@@ -43,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements
         BuzzAwareActivity {
 
     private static final String TAG = "Neo_Buzz_Main_Activity";
-    private static final String ESP_URI = "http://192.168.137.86:5000/";
+    private static final String ESP_URI = "http://192.168.137.104:5000/";
     private static final String TEST_STABLE_URI = "http://192.168.137.1:80/";
     private static final long ESP_POLLING_TIME = 200;
 
@@ -61,11 +65,14 @@ public class MainActivity extends AppCompatActivity implements
     private EasyPredictor clf;
 
     /* Misc */
+    private Thread clientThread;
+    private boolean clientThreadIsRunning = false;
     private final Hand hand = new Hand();
     private VibroTranslator translator;
     private HandPanel handPanel;
     private View buzzLabel;
     private View myoLabel;
+    private String espUri = ESP_URI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,20 +81,28 @@ public class MainActivity extends AppCompatActivity implements
 
         clf = new EasyPredictor(this);
 
-        initBLEDevices();
         intiUI();
+        initBLEDevices();
         initComm();
 
-        translator = new NaiveTranslator(hand, buzz, myo);
+//        translator = new NaiveTranslator(getApplicationContext(), hand, buzz);
+        translator = new PatternTranslator(getApplicationContext(), hand, buzz);
+        if (translator instanceof NaiveTranslator)((NaiveTranslator)translator).setMyo(myo);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        myo.disconnect();
+        buzz.disconnect();
     }
 
     private void initBLEDevices() {
         myo = new MyoWrapper(this);
-        buzz = new BuzzWrapper(this);
+        buzz = new BuzzWrapper(this, buzzWidget);
     }
 
     private void intiUI() {
-        LinearLayout controlContainer = findViewById(R.id.control_container);
         getWindow().getDecorView().setBackgroundColor(Color.WHITE);
 
         Animation anim = AnimationUtils.loadAnimation(this, R.anim.progress_anim);
@@ -136,33 +151,28 @@ public class MainActivity extends AppCompatActivity implements
         switchInput.setThumbTintList(new ColorStateList(states, thumbColors));
         switchInput.setChecked(isClfEnabled);
         switchInput.setOnCheckedChangeListener((e, isChecked) -> isClfEnabled = isChecked);
+
+        // Vibration patterns
+        Spinner typeSpinner = findViewById(R.id.type_spinner);
+        ArrayList<String> options = new ArrayList<>();
+        options.add("1");
+        options.add("2");
+        options.add("3");
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(getApplicationContext(),
+                        android.R.layout.simple_spinner_dropdown_item, options);
+        typeSpinner.setAdapter(adapter);
     }
 
     private void initComm() {
-
-        // HTTP Server
-        Thread serverThread = new Thread(() -> {
-            NanoHTTPD server = new NanoHTTPD(5000) {
-                @Override
-                public Response serve(IHTTPSession session) {
-                    return newFixedLengthResponse(hand.getGesture());
-                }
-            };
-            try {
-                server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-            } catch (IOException e) {
-                Log.d(TAG, "initComm: Failed to start the server");
-            }
-        });
-        serverThread.start();
-
         // HTTP Client
-        Thread clientThread = new Thread(() -> {
+        clientThread = new Thread(() -> {
             RequestQueue queue = Volley.newRequestQueue(this);
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, ESP_URI,
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, espUri,
                     response -> {
                         if (null != response && !response.isEmpty()) {
                             Log.d(TAG, "response: " + response);
+                            // TODO process response
                         }
                     },
                     error -> {
@@ -179,7 +189,30 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
-        clientThread.start();
+
+        // HTTP Server
+        Thread serverThread = new Thread(() -> {
+            NanoHTTPD server = new NanoHTTPD(5000) {
+                @Override
+                public Response serve(IHTTPSession session) {
+                    if (!clientThreadIsRunning) {
+                        espUri = "http://" + session.getRemoteIpAddress() + ":5000";
+                        clientThread.start();
+                        clientThreadIsRunning = true;
+                    }
+                    return newFixedLengthResponse(hand.getGesture());
+                }
+            };
+            try {
+                server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+            } catch (IOException e) {
+                Log.d(TAG, "initComm: Failed to start the server");
+            }
+        });
+        serverThread.start();
+
+
+
     }
 
     @Override
@@ -208,18 +241,20 @@ public class MainActivity extends AppCompatActivity implements
         if (!isClfEnabled) {
             return;
         }
+        // scale input
+        for (int i = 0; i < 8; i++) {
+            emgData[i] /= MyoWrapper.EMG_MAX_VALUE;
+        }
         q.add(emgData);
         if (q.size() == EasyPredictor.SAMPLES) {
-            for (int i = 0; i < EasyPredictor.SAMPLES / 2; ++i) {
-                q.poll();
-            }
             hand.setGesture(clf.predict(q));
-            buzzWidget.update(translator.vibrate());
+            q.clear(); // no window overlap
+            translator.vibrate();
             handPanel.update();
         }
     }
 
     public void onHandUpdated() {
-        buzzWidget.update(translator.vibrate());
+        translator.vibrate();
     }
 }

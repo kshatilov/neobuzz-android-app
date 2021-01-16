@@ -8,4 +8,6 @@
     <string name="myo_label">myo</string>
     <string name="buzz_label">Buzz</string>
     <string name="clf_label">CLF</string>
+    <string name="esp_label">ESP</string>
+    <string name="haptic">HAPTIC</string>
 </resources>

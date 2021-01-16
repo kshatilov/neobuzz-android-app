@@ -25,7 +25,7 @@ public class BuzzActivity extends AppCompatActivity implements BuzzAwareActivity
     Button buzzConnectButton;
     int swipeOrder = 0;
 
-    BuzzWrapper buzz = new BuzzWrapper(this);
+    BuzzWrapper buzz = new BuzzWrapper(this, null);
     int[] motorIntensities = new int[4];
     private Button clearButton;
 

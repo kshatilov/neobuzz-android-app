@@ -5,7 +5,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.shatilov.neobuzz.Hand;
-import com.shatilov.neobuzz.ml.KirillNb100;
+import com.shatilov.neobuzz.ml.KirillNb125;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
@@ -18,15 +18,15 @@ import java.util.Queue;
 public class EasyPredictor {
 
     public static final int CHANNELS = 8;
-    public static final int SAMPLES = 100;
+    public static final int SAMPLES = 125;
 
     private static final String TAG = "CLF";
 
-    private KirillNb100 model;
+    private KirillNb125 model;
 
     public EasyPredictor(Context context) {
         try {
-            model = KirillNb100.newInstance(context);
+            model = KirillNb125.newInstance(context);
         } catch (IOException e) {
             Log.d(TAG, "CLFWrapper: failed to load the model" + e.getLocalizedMessage());
         }
@@ -45,7 +45,7 @@ public class EasyPredictor {
 
         long inferenceStartTime = SystemClock.elapsedRealtime();
         inputFeature0.loadBuffer(result);
-        KirillNb100.Outputs outputs = model.process(inputFeature0);
+        KirillNb125.Outputs outputs = model.process(inputFeature0);
         TensorBuffer out = outputs.getOutputFeature0AsTensorBuffer();
         long inferenceEndTime = SystemClock.elapsedRealtime();
 

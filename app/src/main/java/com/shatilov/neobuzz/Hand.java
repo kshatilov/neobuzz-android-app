@@ -1,5 +1,7 @@
 package com.shatilov.neobuzz;
 
+import java.util.Arrays;
+
 public class Hand {
     /* for each finger 0 is relaxed, 1 is fully bent */
     private double[] fingerPositions = {0, 0, 0, 0, 0};
@@ -17,6 +19,7 @@ public class Hand {
     }
 
     public String getGesture() {
+        gestureCmd = Arrays.toString(fingerPositions);
         return gestureCmd;
     }
 

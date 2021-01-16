@@ -21,6 +21,7 @@ import io.reactivex.schedulers.Schedulers;
 public class MyoWrapper {
 
     private static final int MYO_POLLING_FREQUENCY = 200;
+    public static final float EMG_MAX_VALUE = 128.F;
     private static final short VIBRO_DURATION = 100;
     private static final String TAG = "MyoWrapper: ";
 
@@ -92,10 +93,10 @@ public class MyoWrapper {
         short steps = 6;
         byte strength = (byte) intensity.getValue();
         short duration = (short) (VIBRO_DURATION / steps);
+        ByteBuffer bb = ByteBuffer.allocate(2);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        bb.putShort(duration);
         for (int i = 0; i < steps; i++) {
-            ByteBuffer bb = ByteBuffer.allocate(2);
-            bb.order(ByteOrder.LITTLE_ENDIAN);
-            bb.putShort(duration);
             cmd[pos++] = bb.get(0);
             cmd[pos++] = bb.get(1);
             cmd[pos++] = strength;
@@ -141,6 +142,9 @@ public class MyoWrapper {
     }
 
     public void disconnect() {
+        if (isConnected) {
+            return;
+        }
         myo.disconnect();
         isConnected = false;
     }

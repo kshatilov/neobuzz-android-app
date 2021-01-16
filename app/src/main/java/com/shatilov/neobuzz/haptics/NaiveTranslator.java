@@ -1,16 +1,17 @@
 package com.shatilov.neobuzz.haptics;
 
+import android.content.Context;
+
 import com.shatilov.neobuzz.Hand;
 import com.shatilov.neobuzz.utils.BuzzWrapper;
 import com.shatilov.neobuzz.utils.MyoWrapper;
+import com.shatilov.neobuzz.widgets.BuzzWidget;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class NaiveTranslator implements VibroTranslator {
-    private final Hand hand;
-    private final BuzzWrapper buzz;
-    private final MyoWrapper myo;
+public class NaiveTranslator extends VibroTranslator {
+    private MyoWrapper myo;
 
     private static final Map<Double, VibrationIntensity> state2vibration = new HashMap<>();
 
@@ -20,18 +21,20 @@ public class NaiveTranslator implements VibroTranslator {
         state2vibration.put(1., VibrationIntensity.HIGH);
     }
 
-    public NaiveTranslator(Hand hand, BuzzWrapper buzz, MyoWrapper myo) {
-        this.hand = hand;
-        this.buzz = buzz;
+    public NaiveTranslator(Context context, Hand hand, BuzzWrapper buzz) {
+        super(context, hand, buzz);
+    }
+
+    public void setMyo(MyoWrapper myo) {
         this.myo = myo;
     }
 
     @Override
-    public int[] vibrate() {
+    public void vibrate() {
         double[] states = hand.getFingerPositions();
 
         // haptic feedback for finger 0 on Myo
-        if (myo.isConnected()) {
+        if (null != myo && myo.isConnected()) {
             myo.sendPersistentVibration(
                     state2vibration.get(states[0])
             );
@@ -39,13 +42,9 @@ public class NaiveTranslator implements VibroTranslator {
 
         // haptic feedback for fingers 1-4 on Buzz
         int[] buzzIntensities = {0, 0, 0, 0};
-        if (!buzz.isConnected()) {
-            return buzzIntensities;
-        }
         for (int i = 1; i < 5; i++) {
             buzzIntensities[i-1] = state2vibration.get(states[i]).getValue();
         }
         buzz.sendVibration(buzzIntensities);
-        return buzzIntensities;
     }
 }
