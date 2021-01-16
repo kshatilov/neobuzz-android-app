@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -37,7 +38,11 @@ import com.shatilov.neobuzz.widgets.MyoWidget;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.TreeMap;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -58,6 +63,10 @@ public class MainActivity extends AppCompatActivity implements
     /* BUZZ */
     private BuzzWrapper buzz;
     private BuzzWidget buzzWidget;
+    private VibroTranslator translator;
+    private NaiveTranslator naiveTranslator;
+    private PatternTranslator patternTranslator;
+
 
     /* CLF */
     private final Queue<float[]> q = new ArrayDeque<>(EasyPredictor.SAMPLES);
@@ -68,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements
     private Thread clientThread;
     private boolean clientThreadIsRunning = false;
     private final Hand hand = new Hand();
-    private VibroTranslator translator;
     private HandPanel handPanel;
     private View buzzLabel;
     private View myoLabel;
@@ -84,10 +92,7 @@ public class MainActivity extends AppCompatActivity implements
         intiUI();
         initBLEDevices();
         initComm();
-
-//        translator = new NaiveTranslator(getApplicationContext(), hand, buzz);
-        translator = new PatternTranslator(getApplicationContext(), hand, buzz);
-        if (translator instanceof NaiveTranslator)((NaiveTranslator)translator).setMyo(myo);
+        intiHaptic();
     }
 
     @Override
@@ -120,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements
                 myo.vibrate();
             }
         });
-        LinearLayout myoWContainer =  findViewById(R.id.myo_widget);
+        LinearLayout myoWContainer = findViewById(R.id.myo_widget);
         myoWidget = new MyoWidget(this);
         myoWContainer.addView(myoWidget);
 
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements
                 buzz.sendVibration();
             }
         });
-        LinearLayout buzzWContainer =  findViewById(R.id.buzz_widget);
+        LinearLayout buzzWContainer = findViewById(R.id.buzz_widget);
         buzzWidget = new BuzzWidget(this);
         buzzWContainer.addView(buzzWidget);
 
@@ -146,21 +151,35 @@ public class MainActivity extends AppCompatActivity implements
 
         // CLF UI
         Switch switchInput = findViewById(R.id.clf_switch);
-        int[][] states = new int[][] {new int[] {-android.R.attr.state_checked},new int[] {android.R.attr.state_checked}};
-        int[] thumbColors = new int[] {Color.GRAY,ColourPalette.neuralBlue};
+        int[][] states = new int[][]{new int[]{-android.R.attr.state_checked}, new int[]{android.R.attr.state_checked}};
+        int[] thumbColors = new int[]{Color.GRAY, ColourPalette.neuralBlue};
         switchInput.setThumbTintList(new ColorStateList(states, thumbColors));
         switchInput.setChecked(isClfEnabled);
         switchInput.setOnCheckedChangeListener((e, isChecked) -> isClfEnabled = isChecked);
+    }
 
-        // Vibration patterns
+    private void intiHaptic() {
+        naiveTranslator = new NaiveTranslator(getApplicationContext(), hand, buzz);
+        naiveTranslator.setMyo(myo);
+        translator = naiveTranslator;
+        patternTranslator = new PatternTranslator(getApplicationContext(), hand, buzz);
         Spinner typeSpinner = findViewById(R.id.type_spinner);
-        ArrayList<String> options = new ArrayList<>();
-        options.add("1");
-        options.add("2");
-        options.add("3");
+        Map<String, VibroTranslator> hapticOptions = new TreeMap<>();
+        hapticOptions.put("Naive", naiveTranslator);
+        hapticOptions.put("type_1", patternTranslator);
+        List<String> optionList = new ArrayList<>(hapticOptions.keySet());
         ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(getApplicationContext(),
-                        android.R.layout.simple_spinner_dropdown_item, options);
+                new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, optionList);
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                translator = hapticOptions.get(optionList.get(position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
         typeSpinner.setAdapter(adapter);
     }
 
@@ -212,7 +231,6 @@ public class MainActivity extends AppCompatActivity implements
         serverThread.start();
 
 
-
     }
 
     @Override
@@ -255,6 +273,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onHandUpdated() {
+        if (null == translator) {
+            translator = naiveTranslator;
+        }
         translator.vibrate();
     }
 }

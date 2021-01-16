@@ -41,6 +41,9 @@ public class NaiveTranslator extends VibroTranslator {
         }
 
         // haptic feedback for fingers 1-4 on Buzz
+        if (buzz == null) {
+            return;
+        }
         int[] buzzIntensities = {0, 0, 0, 0};
         for (int i = 1; i < 5; i++) {
             buzzIntensities[i-1] = state2vibration.get(states[i]).getValue();

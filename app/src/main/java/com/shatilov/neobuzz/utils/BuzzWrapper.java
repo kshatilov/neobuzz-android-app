@@ -103,6 +103,10 @@ public class BuzzWrapper {
             notifyThread.interrupt();
         }
 
+        if (null != widget) {
+            widget.update(new int[]{0, 0, 0, 0});
+        }
+
         buzz.clearMotorQueue();
         buzz.stopMotors();
         buzz.attemptNeoReconnect();
