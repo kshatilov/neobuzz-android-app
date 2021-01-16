@@ -1,16 +1,13 @@
 package com.shatilov.neobuzz.haptics;
 
-import android.content.Context;
-
 import com.shatilov.neobuzz.Hand;
 import com.shatilov.neobuzz.utils.BuzzWrapper;
 import com.shatilov.neobuzz.utils.MyoWrapper;
-import com.shatilov.neobuzz.widgets.BuzzWidget;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class NaiveTranslator extends VibroTranslator {
+public class NaiveTranslator extends HapticTranslator {
     private MyoWrapper myo;
 
     private static final Map<Double, VibrationIntensity> state2vibration = new HashMap<>();
@@ -21,8 +18,8 @@ public class NaiveTranslator extends VibroTranslator {
         state2vibration.put(1., VibrationIntensity.HIGH);
     }
 
-    public NaiveTranslator(Context context, Hand hand, BuzzWrapper buzz) {
-        super(context, hand, buzz);
+    public NaiveTranslator(Hand hand, BuzzWrapper buzz) {
+        super(hand, buzz);
     }
 
     public void setMyo(MyoWrapper myo) {

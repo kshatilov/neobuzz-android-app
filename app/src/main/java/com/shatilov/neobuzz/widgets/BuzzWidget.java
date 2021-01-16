@@ -3,7 +3,6 @@ package com.shatilov.neobuzz.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.util.Log;
 
 import com.shatilov.neobuzz.utils.ColourPalette;
 

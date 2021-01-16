@@ -142,7 +142,7 @@ public class MyoWrapper {
     }
 
     public void disconnect() {
-        if (isConnected) {
+        if (!isConnected) {
             return;
         }
         myo.disconnect();

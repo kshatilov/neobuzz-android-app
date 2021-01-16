@@ -1,23 +1,16 @@
 package com.shatilov.neobuzz.haptics;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.shatilov.neobuzz.R;
-
-import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class VibrationPattern {
+public class HapticProfile {
 
     public class GesturePattern {
         private double [] gesture;
@@ -30,17 +23,11 @@ public class VibrationPattern {
     }
     
     private static final String TAG = "VibrationPattern";
-    private String id;
     private List<GesturePattern> patterns = new ArrayList<>();
 
-    public VibrationPattern(Context context) {
+    public HapticProfile(String json) {
         try {
-            InputStream jStream = context.getResources().openRawResource(R.raw.pattern_type_1);
-            String body = IOUtils.toString(jStream, StandardCharsets.UTF_8);
-            jStream.close();
-            // json2pojo ??
-            JSONObject jsonObject = new JSONObject(body);
-            id = jsonObject.getString("type_id");
+            JSONObject jsonObject = new JSONObject(json);
             JSONArray config = jsonObject.getJSONArray("config");
             for(int i = 0; i < config.length(); i++)
             {
@@ -63,13 +50,9 @@ public class VibrationPattern {
                 }
                 this.patterns.add(new GesturePattern(gesture, patterns));
             }
-        } catch (IOException | JSONException e) {
+        } catch (JSONException e) {
             Log.d(TAG, "VibrationPattern: Failed to load vibro pattern" + e.getLocalizedMessage());
         }
-    }
-
-    public String getId() {
-        return id;
     }
 
     public List<int[]> getPattern(double[] targetGesture) {

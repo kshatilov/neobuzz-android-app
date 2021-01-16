@@ -3,6 +3,7 @@ package com.shatilov.neobuzz;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -23,6 +24,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.shatilov.neobuzz.haptics.PatternTranslator;
+import com.shatilov.neobuzz.haptics.HapticProfile;
 import com.shatilov.neobuzz.utils.BuzzAwareActivity;
 import com.shatilov.neobuzz.utils.BuzzWrapper;
 import com.shatilov.neobuzz.utils.ColourPalette;
@@ -31,14 +33,18 @@ import com.shatilov.neobuzz.utils.HapticFeedbackActivity;
 import com.shatilov.neobuzz.utils.MyoAwareActivity;
 import com.shatilov.neobuzz.utils.MyoWrapper;
 import com.shatilov.neobuzz.haptics.NaiveTranslator;
-import com.shatilov.neobuzz.haptics.VibroTranslator;
+import com.shatilov.neobuzz.haptics.HapticTranslator;
 import com.shatilov.neobuzz.widgets.BuzzWidget;
 import com.shatilov.neobuzz.widgets.MyoWidget;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -52,8 +58,6 @@ public class MainActivity extends AppCompatActivity implements
         BuzzAwareActivity {
 
     private static final String TAG = "Neo_Buzz_Main_Activity";
-    private static final String ESP_URI = "http://192.168.137.104:5000/";
-    private static final String TEST_STABLE_URI = "http://192.168.137.1:80/";
     private static final long ESP_POLLING_TIME = 200;
 
     /* MYO */
@@ -63,10 +67,8 @@ public class MainActivity extends AppCompatActivity implements
     /* BUZZ */
     private BuzzWrapper buzz;
     private BuzzWidget buzzWidget;
-    private VibroTranslator translator;
+    private HapticTranslator translator = null;
     private NaiveTranslator naiveTranslator;
-    private PatternTranslator patternTranslator;
-
 
     /* CLF */
     private final Queue<float[]> q = new ArrayDeque<>(EasyPredictor.SAMPLES);
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements
     private HandPanel handPanel;
     private View buzzLabel;
     private View myoLabel;
-    private String espUri = ESP_URI;
+    private String espUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements
         intiUI();
         initBLEDevices();
         initComm();
-        intiHaptic();
+        initHaptic();
+
     }
 
     @Override
@@ -158,15 +161,34 @@ public class MainActivity extends AppCompatActivity implements
         switchInput.setOnCheckedChangeListener((e, isChecked) -> isClfEnabled = isChecked);
     }
 
-    private void intiHaptic() {
-        naiveTranslator = new NaiveTranslator(getApplicationContext(), hand, buzz);
+    private void initHaptic() {
+        Map<String, HapticTranslator> hapticOptions = new TreeMap<>();
+
+        naiveTranslator = new NaiveTranslator(hand, buzz);
         naiveTranslator.setMyo(myo);
         translator = naiveTranslator;
-        patternTranslator = new PatternTranslator(getApplicationContext(), hand, buzz);
-        Spinner typeSpinner = findViewById(R.id.type_spinner);
-        Map<String, VibroTranslator> hapticOptions = new TreeMap<>();
         hapticOptions.put("Naive", naiveTranslator);
-        hapticOptions.put("type_1", patternTranslator);
+
+        String path = Environment.getExternalStorageDirectory().toString() + "/BuzzProfiles";
+        File directory = new File(path);
+        File[] files = directory.listFiles();
+        String fName = null;
+        // look for haptic profiles
+        for (File file : files) {
+            try {
+                fName = file.getName();
+                String cfgName = fName.split("\\.")[0];
+                FileInputStream fStream = new FileInputStream(new File(path + "/" + fName));
+                String json = IOUtils.toString(fStream, StandardCharsets.UTF_8);
+                HapticProfile pattern = new HapticProfile(json);
+                PatternTranslator translator = new PatternTranslator(hand, buzz);
+                translator.setHapticProfile(pattern);
+                hapticOptions.put(cfgName, translator);
+            } catch (IOException e) {
+                Log.e(TAG, "initHaptic: Failed to load haptic profile from file" + fName, e);
+            }
+        }
+        Spinner typeSpinner = findViewById(R.id.type_spinner);
         List<String> optionList = new ArrayList<>(hapticOptions.keySet());
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, optionList);

@@ -213,7 +213,7 @@ public class BuzzWrapper {
     }
 
     public void disconnect() {
-        if (isConnected) {
+        if (!isConnected) {
             return;
         }
         buzz.disconnectNeoDevice();
