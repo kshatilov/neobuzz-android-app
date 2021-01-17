@@ -24,10 +24,21 @@ public class HapticProfile {
     
     private static final String TAG = "VibrationPattern";
     private List<GesturePattern> patterns = new ArrayList<>();
+    private long interval = 500;
+
+    public long getInterval() {
+        return interval;
+    }
 
     public HapticProfile(String json) {
         try {
             JSONObject jsonObject = new JSONObject(json);
+
+            // interval
+            if (jsonObject.has("interval")) {
+                interval = Long.parseLong(jsonObject.getString("interval"));
+            }
+
             JSONArray config = jsonObject.getJSONArray("config");
             for(int i = 0; i < config.length(); i++)
             {
@@ -51,7 +62,7 @@ public class HapticProfile {
                 this.patterns.add(new GesturePattern(gesture, patterns));
             }
         } catch (JSONException e) {
-            Log.d(TAG, "VibrationPattern: Failed to load vibro pattern" + e.getLocalizedMessage());
+            Log.d(TAG, "VibrationPattern: Failed to load vibro pattern " + e.getLocalizedMessage());
         }
     }
 

@@ -35,6 +35,9 @@ public class PatternTranslator extends HapticTranslator {
             Log.d(TAG, "pattern for the current state is not provided");
             buzz.stopVibration();
         }
-        if (buzz.isConnected()) buzz.sendVibration(vibrations);
+        if (buzz.isConnected()) {
+            buzz.setInterval(hapticProfile.getInterval());
+            buzz.sendVibration(vibrations);
+        }
     }
 }

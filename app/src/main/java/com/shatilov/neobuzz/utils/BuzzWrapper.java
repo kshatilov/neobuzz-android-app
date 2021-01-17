@@ -32,10 +32,15 @@ public class BuzzWrapper {
     private boolean isConnected = false;
 
     private List<int[]> patterns;
+    private long interval = 500;
 
     public BuzzWrapper(Activity activity, BuzzWidget widget) {
         this.activity = activity;
         this.widget = widget;
+    }
+
+    public void setInterval(long interval) {
+        this.interval = interval;
     }
 
     public boolean isConnected() {
@@ -117,7 +122,6 @@ public class BuzzWrapper {
             return;
         }
         vibrating = true;
-        long interval = 500;
         vibratingThread = new Thread(() -> {
             int i = 0;
             while (vibrating && !Thread.currentThread().isInterrupted()) {
