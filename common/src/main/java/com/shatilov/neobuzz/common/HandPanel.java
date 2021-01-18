@@ -21,7 +21,6 @@ public class HandPanel extends Widget {
     private static final String TAG = "Hand_Canvas";
     private final Context context;
 
-    private final Hand hand;
 
     private static final int shiftX = -40;
     private static final int RAD = 30;
@@ -51,6 +50,9 @@ public class HandPanel extends Widget {
     private final Drawable thumbBImage; // 162x734
     private final int[] touch2Finger = {0, 0, 0, 0, 0};
 
+    private boolean isTouchEnabled = true;
+    private Hand hand;
+
     private final double SF = 0.75;
 
     public HandPanel(Context context, Hand hand) {
@@ -66,6 +68,15 @@ public class HandPanel extends Widget {
 
     }
 
+    public void setTouchEnabled(boolean touchEnabled) {
+        isTouchEnabled = touchEnabled;
+    }
+
+    public void setHand(Hand hand) {
+        this.hand = hand;
+        invalidate();
+    }
+
     public void update() {
         invalidate();
     }
@@ -73,6 +84,10 @@ public class HandPanel extends Widget {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         performClick();
+        if (!isTouchEnabled) {
+            return super.onTouchEvent(event);
+        }
+
         float x = event.getX();
         int index = 0;
 

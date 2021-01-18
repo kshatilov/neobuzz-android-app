@@ -18,6 +18,10 @@ public class Hand {
     public Hand() {
     }
 
+    public Hand(double[] pos) {
+        this.fingerPositions = pos;
+    }
+
     public String getGesture() {
         gestureCmd = Arrays.toString(fingerPositions);
         return gestureCmd;

@@ -6,11 +6,15 @@ import com.shatilov.neobuzz.common.utils.BuzzWrapper;
 public abstract class HapticTranslator {
 
     protected final BuzzWrapper buzz;
-    protected final Hand hand;
+    protected Hand hand;
 
     public HapticTranslator(Hand hand, BuzzWrapper buzz) {
         this.hand = hand;
         this.buzz = buzz;
+    }
+
+    public void setHand(Hand hand) {
+        this.hand = hand;
     }
 
     abstract public void vibrate();
