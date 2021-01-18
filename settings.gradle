@@ -1,2 +1,4 @@
-include ':app'
+include ':buzzinder'
+include ':common'
+include ':BuzzNPoses'
 rootProject.name='NeoBuzz'
