@@ -34,6 +34,10 @@ public class Utils {
         File directory = new File(path);
         File[] files = directory.listFiles();
         String fName = null;
+        if (files.length == 0) {
+            Log.e("Utils", "initHapticConfig: Seems like no files or no permission to read files");
+            return null;
+        }
         for (File file : files) {
             try {
                 fName = file.getName();

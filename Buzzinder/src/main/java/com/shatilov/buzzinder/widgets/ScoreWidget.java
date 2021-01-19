@@ -1,4 +1,4 @@
-package com.shatilov.buzzinder;
+package com.shatilov.buzzinder.widgets;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -6,14 +6,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.shatilov.buzzinder.R;
+import com.shatilov.neobuzz.common.utils.ColourPalette;
+
 
 public class ScoreWidget extends LinearLayout {
     private final TextView scoreLabel;
-    private final ImageView icon;
-    private final TextView label;
 
-    protected int sizeX;
-    protected int sizeY;
     public static final int M = 100;
     public static final int FS = 28;
 
@@ -26,20 +25,13 @@ public class ScoreWidget extends LinearLayout {
         setGravity(TEXT_ALIGNMENT_CENTER);
         setPadding(M, 30, 0, 0);
 
-        icon = new ImageView(getContext());
-        icon.setImageDrawable(getContext().getDrawable(R.drawable.main_icon));
-        addView(icon);
-
-        label = new TextView(getContext());
-        label.setTextSize(FS);
-        label.setTypeface(null, Typeface.BOLD);
-        label.setText("buzzinder");
-        addView(label);
+        addView(new LogoWidget(context));
 
         scoreLabel = new TextView(getContext());
         scoreLabel.setTextSize(FS);
         scoreLabel.setText(currentScore + "/" + totalScore);
-        scoreLabel.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        scoreLabel.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        scoreLabel.setTypeface(null, Typeface.BOLD_ITALIC);
         addView(scoreLabel);
     }
 
@@ -56,12 +48,6 @@ public class ScoreWidget extends LinearLayout {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        sizeY = bottom - top;
-        sizeX = right - left;
-        icon.requestLayout();
-        icon.getLayoutParams().height = 120;
-        icon.getLayoutParams().width = 120;
-        label.layout(left + 250, top + 35, left + M * 7, bottom);
-        scoreLabel.layout(left + 750, top + 35, left + M * 9, bottom);
+        scoreLabel.layout(left + 8 * M, top + 35, left + 10 * M, bottom);
     }
 }

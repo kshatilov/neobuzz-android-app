@@ -1,8 +1,11 @@
-package com.shatilov.buzzinder;
+package com.shatilov.buzzinder.widgets;
 
 import android.app.Activity;
 import android.widget.Button;
 import android.widget.LinearLayout;
+
+import com.shatilov.buzzinder.activities.DeckActivity;
+import com.shatilov.buzzinder.R;
 
 public class ControlWidget extends LinearLayout {
 

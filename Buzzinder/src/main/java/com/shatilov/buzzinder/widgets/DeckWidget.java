@@ -1,4 +1,4 @@
-package com.shatilov.buzzinder;
+package com.shatilov.buzzinder.widgets;
 
 import android.app.Activity;
 import android.graphics.Canvas;
@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 
+import com.shatilov.buzzinder.activities.DeckActivity;
 import com.shatilov.neobuzz.common.Hand;
 import com.shatilov.neobuzz.common.HandPanel;
 import com.shatilov.neobuzz.common.widgets.BuzzWidget;

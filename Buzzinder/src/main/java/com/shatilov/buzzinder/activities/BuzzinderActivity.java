@@ -1,8 +1,10 @@
-package com.shatilov.buzzinder;
+package com.shatilov.buzzinder.activities;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -12,6 +14,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.shatilov.buzzinder.R;
+import com.shatilov.buzzinder.widgets.ControlWidget;
+import com.shatilov.buzzinder.widgets.DeckWidget;
+import com.shatilov.buzzinder.widgets.ScoreWidget;
 import com.shatilov.neobuzz.common.Hand;
 import com.shatilov.neobuzz.common.haptics.HapticTranslator;
 import com.shatilov.neobuzz.common.haptics.NaiveTranslator;
@@ -49,9 +55,11 @@ public class BuzzinderActivity extends AppCompatActivity implements BuzzAwareAct
         buzz = new BuzzWrapper(this, buzzWidget);
         buzz.connect();
         vibrator = new NaiveTranslator(new Hand(), buzz);
+
         LinearLayout deckContainer = findViewById(R.id.deck_container);
         deckWidget = new DeckWidget(this, buzzWidget);
         deckContainer.addView(deckWidget);
+        deckContainer.setOnClickListener((e) -> popup.dismiss());
 
         LinearLayout scoreContainer = findViewById(R.id.score_container);
         scoreWidget = new ScoreWidget(this);
@@ -67,6 +75,9 @@ public class BuzzinderActivity extends AppCompatActivity implements BuzzAwareAct
         deckWidget.setHand(deck.get(0));
         vibrator.setHand(deck.get(0));
         vibrator.vibrate();
+
+        String selection = getIntent().getExtras().getString(StartActivity.SELECTION);
+        Log.d("TAG", "onCreate: " + selection);
 
         initPopup();
     }
@@ -125,7 +136,7 @@ public class BuzzinderActivity extends AppCompatActivity implements BuzzAwareAct
             popup.update(0, 300, 1000, 1000);
         } else {
             Toast toast = Toast.makeText(getApplicationContext(),
-                    getResources().getText(R.string.nope), Toast.LENGTH_LONG);
+                    getResources().getText(R.string.nope), Toast.LENGTH_SHORT);
             toast.setGravity(Gravity.CENTER, 0, 0);
             toast.show();
         }
@@ -146,6 +157,9 @@ public class BuzzinderActivity extends AppCompatActivity implements BuzzAwareAct
             vibrator.vibrate();
         } else {
             // display score and go back to selection
+            Intent intent = new Intent(this, ScoreActivity.class);
+            intent.putExtra("SCORE", score + " out of " + deck.size());
+            startActivity(intent);
         }
         return isCorrect;
     }
