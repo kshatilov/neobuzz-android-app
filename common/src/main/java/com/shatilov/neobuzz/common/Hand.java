@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Hand {
     /* for each finger 0 is relaxed, 1 is fully bent */
     private double[] fingerPositions = {0, 0, 0, 0, 0};
-    private double[] pressure = {0, 0 , 0};
+    private double[] pressure = {0, 0, 0};
     private String gestureCmd;
 
     public static final String[] simpleGestures = {
@@ -13,6 +13,7 @@ public class Hand {
             ("1. 1. 1. 1. 1."),   // fist
             ("0. 1. 1. 1. 1."),   // thumb
             ("1. 0. 1. 1. 1."),   // point
+            ("0. 0. 1. 1. 0."),   // rock !!!
     };
 
     public Hand() {

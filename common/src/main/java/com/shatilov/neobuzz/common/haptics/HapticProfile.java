@@ -16,6 +16,10 @@ public class HapticProfile {
         private double [] gesture;
         private ArrayList<int[]> pattern;
 
+        public double[] getGesture() {
+            return gesture;
+        }
+
         public GesturePattern(double[] gesture, ArrayList<int[]> pattern) {
             this.gesture = gesture;
             this.pattern = pattern;
@@ -28,6 +32,10 @@ public class HapticProfile {
 
     public long getInterval() {
         return interval;
+    }
+
+    public List<GesturePattern> getPatterns() {
+        return patterns;
     }
 
     public HapticProfile(String json) {

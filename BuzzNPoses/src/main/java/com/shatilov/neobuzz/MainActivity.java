@@ -184,11 +184,22 @@ public class MainActivity extends AppCompatActivity implements
         // HTTP Client
         clientThread = new Thread(() -> {
             RequestQueue queue = Volley.newRequestQueue(this);
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, espUri,
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, "http://192.168.40.198:5000/",
                     response -> {
                         if (null != response && !response.isEmpty()) {
                             Log.d(TAG, "response: " + response);
                             // TODO process response
+                            String[] pressurePart = response
+                                    .split(":")[1]
+                                    .trim()
+                                    .split(" ");
+                            int pressure_1 = Integer.parseInt(pressurePart[0]);
+                            int pressure_2 = Integer.parseInt(pressurePart[1]);
+                            int pressure_3 = Integer.parseInt(pressurePart[2]);
+                            hand.setPressure(2, pressure_1 < 3500 ? 1 : 0);
+                            hand.setPressure(1, pressure_3 < 3500 ? 1 : 0);
+                            hand.setPressure(0, pressure_2 < 3500 ? 1 : 0);
+                            handPanel.update();
                         }
                     },
                     error -> {
@@ -205,6 +216,8 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+        clientThread.start();
+        clientThreadIsRunning = true;
 
         // HTTP Server
         Thread serverThread = new Thread(() -> {

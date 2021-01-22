@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">buzzinder</string>
     <string name="it_s_a_match">IT\'S A MATCH!</string>
-    <string name="nope">Better luck next time</string>
+    <string name="nope">NOPE!</string>
+    <string name="yay">GOOD JOB!</string>
     <string name="top_text">I\'m interested in</string>
     <string name="bottom_text">buzzes</string>
     <string name="go">GO!</string>

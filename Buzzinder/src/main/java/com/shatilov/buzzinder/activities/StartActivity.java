@@ -56,7 +56,6 @@ public class StartActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 TextView tv = ((TextView)parent.getChildAt(0));
                 tv.setTextColor(ColourPalette.ultramaGreen);
-                tv.setTextSize(25);
                 tv.setTypeface(null, Typeface.BOLD);
                 selection = optionList.get(position);
             }

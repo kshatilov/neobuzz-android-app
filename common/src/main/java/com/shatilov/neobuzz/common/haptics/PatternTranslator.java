@@ -24,6 +24,10 @@ public class PatternTranslator extends HapticTranslator {
         this.hapticProfile = hapticProfile;
     }
 
+    public HapticProfile getHapticProfile() {
+        return hapticProfile;
+    }
+
     @Override
     public void vibrate() {
         if (null == hapticProfile || null == buzz) {
