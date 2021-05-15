@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -99,11 +101,21 @@ public class MKActivity
         }
         String finalHtmlContent = htmlContent;
 
+        Animation anim = AnimationUtils.loadAnimation(this, R.anim.progress_anim);
+        anim.setDuration(2000);
+        final boolean[] isAnimated = {false};
 
         Thread htmlThread = new Thread(() -> {
             NanoHTTPD server = new NanoHTTPD(5000) {
                 @Override
                 public Response serve(IHTTPSession session) {
+                    if (!isAnimated[0]) {
+                        findViewById(R.id.web_icon).startAnimation(anim);
+                        isAnimated[0] = true;
+                        TextView incIp = ((TextView)findViewById(R.id.inc_ip_label));
+                        incIp.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+                        incIp.setText(session.getRemoteIpAddress());
+                    }
                     return newFixedLengthResponse(finalHtmlContent);
                 }
             };

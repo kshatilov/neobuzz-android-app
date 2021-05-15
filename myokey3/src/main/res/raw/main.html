@@ -129,7 +129,7 @@
         let lastId = "0";
 
         function callback(data) {
-
+            console.log(data);
             if ("id" in data && data["id"] === lastId) {
                 //this gesture has benn processed
                 return;
@@ -152,21 +152,19 @@
                 return;
             }
             let classes = keyElems[currRow][currCol].classList;
-            if (classes.contains("keyHighlight")) {
-                // input
-                let char = keyElems[currRow][currCol].innerText;
+            // input
+            let char = keyElems[currRow][currCol].innerText;
 
-                if ("<" !== char) {
-                    document.getElementById(activeInputId).value += keyElems[currRow][currCol].innerText;
-                } else {
-                    document.getElementById(activeInputId).value = document.getElementById(activeInputId).value.slice(0, -1);
-                }
-
-                highlightColumn();
-                keyElems[currRow][currCol].className = "key keyEnter";
+            if ("<" !== char) {
+                document.getElementById(activeInputId).value += keyElems[currRow][currCol].innerText;
             } else {
-                keyElems[currRow][currCol].className = "key keyHighlight";
+                document.getElementById(activeInputId).value = document.getElementById(activeInputId).value.slice(0, -1);
             }
+            keyElems[currRow][currCol].className = "key keyHighlight";
+            setTimeout(() => {
+                highlightColumn();
+            }, 200)
+
         }
 
         // poll gesture
@@ -179,11 +177,10 @@
                 crossDomain: true,
                 jsonpCallback: 'callback'
             });
-        }, 400);
+        }, 500);
 
-        let activeInputId = "";
+        let activeInputId = "login_input";
         setInputActive = (id) => {
-            console.log(id);
             activeInputId = id;
         }
 
@@ -197,10 +194,12 @@
         <h2 style="color: white; padding-top: 20px; margin-left: 10%; font-size: 24px"> Sign In</h2>
         <div style="width: 100%; text-align:center">
             <label>
-                <input type="text" style="" class="rounded main in" placeholder="Login" id="login_input" onclick="setInputActive('login_input')">
+                <input type="text" style="" class="rounded main in" placeholder="Login" id="login_input"
+                       onclick="setInputActive('login_input')">
             </label>
             <label>
-                <input type="text" style="margin-top: 15px" class="rounded main in" placeholder="Password" id="password_input" onclick="setInputActive('password_input')">
+                <input type="text" style="margin-top: 15px" class="rounded main in" placeholder="Password"
+                       id="password_input" onclick="setInputActive('password_input')">
             </label>
             <button class="rounded main"
                     style="margin-top: 30px; color: white; background-color:#C00000; width: 84%; font-size: 16px">Sign

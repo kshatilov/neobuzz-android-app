@@ -46,6 +46,14 @@
                 android:layout_height="60dp"
                 android:layout_gravity="center_vertical"
                 android:background="@drawable/web_icon"/>
+
+            <TextView
+                android:id="@+id/inc_ip_label"
+                android:layout_width="140dp"
+                android:textColor="#C00000"
+                android:layout_gravity="center_vertical"
+                android:layout_height="50dp" />
+
         </LinearLayout>
 
     </LinearLayout>
