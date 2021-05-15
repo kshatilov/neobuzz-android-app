@@ -1,3 +1,4 @@
+include ':myokey3'
 include ':buzzinder'
 include ':common'
 include ':BuzzNPoses'

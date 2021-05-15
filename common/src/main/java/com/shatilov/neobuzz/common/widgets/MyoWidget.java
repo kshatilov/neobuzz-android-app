@@ -29,7 +29,7 @@ public class MyoWidget extends Widget {
         int pc = sizeX / 8;
         int maxY = sizeY / 2;
         int startY = sizeY / 2;
-        int maxEmg = 128;
+        int maxEmg = 1;
         for (int i = 0; i < 8; i++) {
             float y = startY - maxY * data[i] / maxEmg;
             canvas.drawLine(i * pc, startY,  (i + .5F) * pc, y, paint);

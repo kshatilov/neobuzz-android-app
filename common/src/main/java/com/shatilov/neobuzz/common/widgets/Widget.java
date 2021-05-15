@@ -3,7 +3,6 @@ package com.shatilov.neobuzz.common.widgets;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,7 +22,7 @@ public abstract class Widget extends View {
     private void initPaint() {
         paint = new Paint();
         paint.setColor(Color.LTGRAY);
-        paint.setStrokeWidth(5);
+        paint.setStrokeWidth(8);
         paint.setStyle(Paint.Style.STROKE);
     }
 

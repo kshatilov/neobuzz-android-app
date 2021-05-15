@@ -56,7 +56,7 @@ public class MyoWrapper {
                                 handler.postDelayed(() -> {
                                     myo.sendCommand(Utils.getStreamCmd());
                                     myo.setFrequency(MYO_POLLING_FREQUENCY);
-                                }, 2000);
+                                }, 1000);
 
                                 isConnected = true;
 

@@ -53,7 +53,7 @@ public class HandPanel extends Widget {
     private boolean isTouchEnabled = true;
     private Hand hand;
 
-    private final double SF = 0.75;
+    private final double SF = 0.66;
 
     public HandPanel(Context context, Hand hand) {
         super(context);

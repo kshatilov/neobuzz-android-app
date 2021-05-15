@@ -24,6 +24,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.shatilov.neobuzz.common.Hand;
 import com.shatilov.neobuzz.common.HandPanel;
+import com.shatilov.neobuzz.common.haptics.AutoencTranslator;
 import com.shatilov.neobuzz.common.haptics.HapticTranslator;
 import com.shatilov.neobuzz.common.haptics.NaiveTranslator;
 import com.shatilov.neobuzz.common.utils.BuzzAwareActivity;
@@ -40,6 +41,7 @@ import com.shatilov.neobuzz.common.widgets.MyoWidget;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -78,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements
     private View myoLabel;
     private String espUri;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements
 
         intiUI();
         initBLEDevices();
-        initComm();
+//        initComm();
         initHaptic();
 
     }
@@ -138,9 +141,9 @@ public class MainActivity extends AppCompatActivity implements
                 buzz.sendVibration();
             }
         });
-        LinearLayout buzzWContainer = findViewById(R.id.buzz_widget);
-        buzzWidget = new BuzzWidget(this);
-        buzzWContainer.addView(buzzWidget);
+//        LinearLayout buzzWContainer = findViewById(R.id.buzz_widget);
+//        buzzWidget = new BuzzWidget(this);
+//        buzzWContainer.addView(buzzWidget);
 
         LinearLayout handContainer = findViewById(R.id.hand_container);
         handPanel = new HandPanel(this, hand);
@@ -157,20 +160,27 @@ public class MainActivity extends AppCompatActivity implements
 
     private void initHaptic() {
         Map<String, HapticTranslator> hapticOptions = Utils.initHapticConfig(hand, buzz);
-
+        if (null == hapticOptions) {
+            hapticOptions = new HashMap<>();
+        }
         naiveTranslator = new NaiveTranslator(hand, buzz);
         naiveTranslator.setMyo(myo);
         translator = naiveTranslator;
         hapticOptions.put("Naive", naiveTranslator);
 
+        AutoencTranslator autoencTranslator = new AutoencTranslator(hand, buzz);
+        autoencTranslator.setContext(getApplicationContext());
+        hapticOptions.put("Autoenc", autoencTranslator);
+
         Spinner typeSpinner = findViewById(R.id.type_spinner);
         List<String> optionList = new ArrayList<>(hapticOptions.keySet());
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, optionList);
+        Map<String, HapticTranslator> finalHapticOptions = hapticOptions;
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                translator = hapticOptions.get(optionList.get(position));
+                translator = finalHapticOptions.get(optionList.get(position));
             }
 
             @Override
@@ -271,13 +281,13 @@ public class MainActivity extends AppCompatActivity implements
         }
         // scale input
         for (int i = 0; i < 8; i++) {
-            emgData[i] /= MyoWrapper.EMG_MAX_VALUE;
+            emgData[i] *= 4.5;
         }
         q.add(emgData);
         if (q.size() == EasyPredictor.SAMPLES) {
             hand.setGesture(clf.predict(q));
             q.clear(); // no window overlap
-            translator.vibrate();
+//            translator.vibrate();
             handPanel.update();
         }
     }

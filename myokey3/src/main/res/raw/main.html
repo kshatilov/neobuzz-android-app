@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+<head>
+    <!--    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>-->
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <title>MyoKey</title>
+    <style>
+        body {
+            font-family: 'Arial';
+            font-size: 22px;
+        }
+
+        .rounded {
+            border: 10px gray;
+            border-radius: 6px;
+        }
+
+        .main {
+            width: 80%;
+            height: 60px;
+            margin: 0 auto
+        }
+
+        ::placeholder {
+            color: gray;
+            /* padding-left: 10px */
+        }
+
+        .in {
+            padding-left: 10px;
+        }
+
+        .row {
+            height: 60px;
+            margin-top: 8px;
+        }
+
+        .key {
+            border: 3px outset lightgray;
+            border-radius: 10px;
+            background: transparent;
+            height: 50px;
+            width: 54px;
+            display: inline-block;
+            margin-right: 8px;
+            color: darkgray;
+            font-size: 28px;
+            text-align: center;
+            line-height: 50px;
+        }
+
+        .columnHighlight {
+            background: #C00000 !important;
+            color: white;
+        }
+
+        .keyHighlight {
+            background: #870000 !important;
+        }
+
+        .keyEnter {
+            background: #000000 !important;
+        }
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+
+    </script>
+
+    <script>
+
+        const keyElems = [];
+        let currCol = 0;
+
+        const populateKeys = () => {
+            const row1 = "qwertyuiop";
+            const row2 = "asdfghjkl";
+            const row3 = "zxcvbnm<";
+            const rows = [row1, row2, row3];
+            [...rows].forEach((row, i) => {
+                const rowElements = [];
+                [...row].forEach((keyValue, j) => {
+                    const keyElem = document.createElement("div");
+                    keyElem.className = "key";
+                    keyElem.innerText = keyValue;
+                    if (0 === j) keyElem.style.marginLeft = (i * 10) + "px";
+                    rowElements.push(keyElem);
+                    document.getElementById("row" + (i + 1)).appendChild(keyElem);
+                });
+                keyElems.push(rowElements);
+            })
+        };
+
+        window.onload = () => {
+            populateKeys();
+            document.addEventListener("pointermove", (event) => {
+                const startX = keyElems[0][0].getBoundingClientRect().left;
+                const x = event.clientX;
+                currCol = Math.floor((x - startX) / 68);
+                currCol = Math.max(0, Math.min(9, currCol));
+
+                [...keyElems].forEach((row, i) => {
+                    [...row].forEach((keyElem) => {
+                        keyElem.className = "key"
+                    })
+                });
+
+                highlightColumn();
+            });
+        };
+
+        const highlightColumn = () => {
+            keyElems[0][currCol].className = "key columnHighlight";
+            if (currCol < 9) keyElems[1][currCol].className = "key columnHighlight";
+            if (currCol < 8) keyElems[2][currCol].className = "key columnHighlight";
+        };
+
+        const directions = {
+            "top": 0,
+            "mid": 1,
+            "bot": 2,
+        };
+
+        let lastRow = -1;
+        let lastId = "0";
+
+        function callback(data) {
+
+            if ("id" in data && data["id"] === lastId) {
+                //this gesture has benn processed
+                return;
+            }
+            lastId = data["id"];
+
+            const dir = data["gesture"];
+            if (!(dir in directions)) {
+                //gestures not related to input
+                return;
+            }
+
+            let currRow = directions[dir];
+            if (lastRow !== currRow) {
+                highlightColumn();
+            }
+            lastRow = currRow;
+            if (null == keyElems[currRow][currCol]) {
+                //side columns
+                return;
+            }
+            let classes = keyElems[currRow][currCol].classList;
+            if (classes.contains("keyHighlight")) {
+                // input
+                let char = keyElems[currRow][currCol].innerText;
+
+                if ("<" !== char) {
+                    document.getElementById(activeInputId).value += keyElems[currRow][currCol].innerText;
+                } else {
+                    document.getElementById(activeInputId).value = document.getElementById(activeInputId).value.slice(0, -1);
+                }
+
+                highlightColumn();
+                keyElems[currRow][currCol].className = "key keyEnter";
+            } else {
+                keyElems[currRow][currCol].className = "key keyHighlight";
+            }
+        }
+
+        // poll gesture
+        setInterval(() => {
+            const url = 'http://10.79.105.179:5050/';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: "jsonp",
+                crossDomain: true,
+                jsonpCallback: 'callback'
+            });
+        }, 400);
+
+        let activeInputId = "";
+        setInputActive = (id) => {
+            console.log(id);
+            activeInputId = id;
+        }
+
+    </script>
+</head>
+<body style="background-color:	#202020;">
+
+<div style="">
+    <div style="background-color:	#303030; min-height: 320px; max-width: 400px; width: 50%;  margin: 0 auto;"
+         class="rounded">
+        <h2 style="color: white; padding-top: 20px; margin-left: 10%; font-size: 24px"> Sign In</h2>
+        <div style="width: 100%; text-align:center">
+            <label>
+                <input type="text" style="" class="rounded main in" placeholder="Login" id="login_input" onclick="setInputActive('login_input')">
+            </label>
+            <label>
+                <input type="text" style="margin-top: 15px" class="rounded main in" placeholder="Password" id="password_input" onclick="setInputActive('password_input')">
+            </label>
+            <button class="rounded main"
+                    style="margin-top: 30px; color: white; background-color:#C00000; width: 84%; font-size: 16px">Sign
+                In
+            </button>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 25px">
+    <div style="height: 200px; width:80%; margin: 0 auto; text-align: center;" id="keyboard_container">
+        <div class="row" id="row1"></div>
+        <div class="row" id="row2"></div>
+        <div class="row" id="row3"></div>
+    </div>
+</div>
+
+
+<div id="gaze_debug" style="color: white; margin-top: 0; text-align: center"></div>
+
+</body>
+</html>

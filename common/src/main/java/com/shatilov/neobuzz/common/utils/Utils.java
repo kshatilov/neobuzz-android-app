@@ -1,6 +1,5 @@
 package com.shatilov.neobuzz.common.utils;
 
-import android.os.Environment;
 import android.util.Log;
 
 import com.shatilov.neobuzz.common.Hand;
@@ -22,7 +21,7 @@ public class Utils {
         byte command_data = (byte) 0x01;
         byte payload_data = (byte) 3;
         byte emg_mode = (byte) 0x02;
-        byte imu_mode = (byte) 0x00;
+        byte imu_mode = (byte) 0x01;
         byte class_mode = (byte) 0x00;
 
         return new byte[]{command_data, payload_data, emg_mode, imu_mode, class_mode};
@@ -30,11 +29,12 @@ public class Utils {
 
     public static Map<String, HapticTranslator> initHapticConfig(Hand hand, BuzzWrapper buzz) {
         Map<String, HapticTranslator> hapticOptions = new TreeMap<>();
-        String path = Environment.getExternalStorageDirectory().toString() + "/BuzzProfiles";
+//        String path = Environment.getExternalStorageDirectory().toString() + "/BuzzProfiles";
+        String path = "/BuzzProfiles";
         File directory = new File(path);
         File[] files = directory.listFiles();
         String fName = null;
-        if (files.length == 0) {
+        if (null == files || files.length == 0) {
             Log.e("Utils", "initHapticConfig: Seems like no files or no permission to read files");
             return null;
         }

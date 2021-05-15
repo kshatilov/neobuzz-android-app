@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.shatilov.neobuzz.common.Hand;
 import com.shatilov.neobuzz.common.ml.KirillNb125;
 
 import org.tensorflow.lite.DataType;
@@ -57,12 +56,12 @@ public class EasyPredictor {
                 break;
             }
         }
-        return Hand.simpleGestures[index];
+        return String.valueOf(index);
     }
 
 
-    private static byte[] FloatArray2ByteArray(float[] values) {
-        ByteBuffer buffer = ByteBuffer.allocate(4 * values.length);
+    static byte[] FloatArray2ByteArray(float[] values) {
+        ByteBuffer buffer = ByteBuffer.allocate((Float.SIZE / Byte.SIZE) * values.length);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         for (float value : values) {
             buffer.putFloat(value);
